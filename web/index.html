@@ -1,0 +1,2467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PL Scout 25/26 — Premier League Style-Based Player Scouting Dashboard</title>
+  <meta name="description" content="Explore Premier League 2025–26 players and their closest statistical style matches based on multi-dimensional per-90 metrics and cosine similarity.">
+  
+  <!-- Google Fonts: Plus Jakarta Sans (Headings/UI) & JetBrains Mono (Stats/Scoreboard) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* ==========================================================================
+       CSS CUSTOM PROPERTIES & COLOR TOKENS
+       Rule: No hardcoded color literals outside :root and @media blocks.
+       ========================================================================== */
+    :root {
+      /* Palette Foundation */
+      --pitch: #1f8a4c;
+      --amber: #f2a33c;
+      --ink: #0f172a;
+      --paper: #f8fafc;
+      --white: #ffffff;
+      --transparent: transparent;
+
+      /* Position Identity */
+      --forward: #d9482f;
+      --midfielder: #1f8a4c;
+      --defender: #1f6fb2;
+      --goalkeeper: #d9860f;
+
+      /* Position Tints (Light) */
+      --forward-bg: rgba(217, 72, 47, 0.1);
+      --forward-border: rgba(217, 72, 47, 0.3);
+      --midfielder-bg: rgba(31, 138, 76, 0.1);
+      --midfielder-border: rgba(31, 138, 76, 0.3);
+      --defender-bg: rgba(31, 111, 178, 0.1);
+      --defender-border: rgba(31, 111, 178, 0.3);
+      --goalkeeper-bg: rgba(217, 134, 15, 0.1);
+      --goalkeeper-border: rgba(217, 134, 15, 0.3);
+
+      /* Semantic UI Tokens (Light) */
+      --bg-page: #f2f5f8;
+      --bg-pitch-stripes: rgba(31, 138, 76, 0.035);
+      --bg-field-geometry: rgba(31, 138, 76, 0.045);
+      --surface: #ffffff;
+      --surface-header: rgba(255, 255, 255, 0.92);
+      --surface-card: #ffffff;
+      --surface-card-hover: #fafcfb;
+      --surface-tile: #f8fafc;
+      --surface-tile-hover: #f1f5f9;
+      --surface-drawer: #ffffff;
+      --surface-control: #ffffff;
+      --surface-badge: #edf2f7;
+
+      --text-primary: #0f172a;
+      --text-secondary: #334155;
+      --text-muted: #64748b;
+      --text-faint: #94a3b8;
+      --text-inverse: #ffffff;
+      --text-pitch-accent: #166534;
+
+      --border-subtle: #edf2f7;
+      --border-main: #e2e8f0;
+      --border-strong: #cbd5e1;
+      --border-focus: #1f8a4c;
+
+      --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.05);
+      --shadow-card: 0 2px 8px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+      --shadow-card-hover: 0 12px 24px rgba(31, 138, 76, 0.12), 0 4px 8px rgba(15, 23, 42, 0.04);
+      --shadow-drawer: -8px 0 36px rgba(15, 23, 42, 0.18);
+      --shadow-control: 0 1px 2px rgba(15, 23, 42, 0.06);
+
+      /* Position Hover Shadow Glows */
+      --shadow-glow-forward: 0 14px 28px rgba(217, 72, 47, 0.18), 0 0 1px rgba(217, 72, 47, 0.3);
+      --shadow-glow-midfielder: 0 14px 28px rgba(31, 138, 76, 0.18), 0 0 1px rgba(31, 138, 76, 0.3);
+      --shadow-glow-defender: 0 14px 28px rgba(31, 111, 178, 0.18), 0 0 1px rgba(31, 111, 178, 0.3);
+      --shadow-glow-goalkeeper: 0 14px 28px rgba(217, 134, 15, 0.18), 0 0 1px rgba(217, 134, 15, 0.3);
+
+      --focus-ring: rgba(31, 138, 76, 0.45);
+      --overlay-backdrop: rgba(15, 23, 42, 0.6);
+
+      /* Low Sample Badge (Amber Family) */
+      --low-sample-bg: rgba(242, 163, 60, 0.12);
+      --low-sample-border: rgba(242, 163, 60, 0.35);
+      --low-sample-text: #9a5b13;
+
+      --sim-badge-bg: rgba(31, 138, 76, 0.12);
+      --sim-badge-text: #166534;
+      --sim-meter-bg: #e2e8f0;
+      --sim-meter-fill: #1f8a4c;
+
+      --error-bg: #fef2f2;
+      --error-border: #f87171;
+      --error-text: #991b1b;
+      --error-subtext: #b91c1c;
+
+      --tab-bg: #f1f5f9;
+      --tab-active-bg: #1f8a4c;
+      --tab-active-text: #ffffff;
+
+      --slider-track: #e2e8f0;
+      --slider-fill: #1f8a4c;
+      --slider-thumb: #ffffff;
+      --slider-thumb-border: #1f8a4c;
+
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --ink: #f8fafc;
+        --paper: #0b1118;
+
+        /* Dark Tints */
+        --forward-bg: rgba(217, 72, 47, 0.18);
+        --forward-border: rgba(217, 72, 47, 0.45);
+        --midfielder-bg: rgba(31, 138, 76, 0.18);
+        --midfielder-border: rgba(31, 138, 76, 0.45);
+        --defender-bg: rgba(31, 111, 178, 0.18);
+        --defender-border: rgba(31, 111, 178, 0.45);
+        --goalkeeper-bg: rgba(217, 134, 15, 0.18);
+        --goalkeeper-border: rgba(217, 134, 15, 0.45);
+
+        /* Semantic UI Tokens (Dark) */
+        --bg-page: #0a0f16;
+        --bg-pitch-stripes: rgba(46, 189, 106, 0.04);
+        --bg-field-geometry: rgba(46, 189, 106, 0.05);
+        --surface: #121922;
+        --surface-header: rgba(18, 25, 34, 0.92);
+        --surface-card: #131b25;
+        --surface-card-hover: #192432;
+        --surface-tile: #0e141c;
+        --surface-tile-hover: #16202c;
+        --surface-drawer: #0f1620;
+        --surface-control: #131c26;
+        --surface-badge: #1b2633;
+
+        --text-primary: #f8fafc;
+        --text-secondary: #cbd5e1;
+        --text-muted: #94a3b8;
+        --text-faint: #64748b;
+        --text-inverse: #0a0f16;
+        --text-pitch-accent: #4ade80;
+
+        --border-subtle: #192330;
+        --border-main: #233142;
+        --border-strong: #334458;
+        --border-focus: #34d399;
+
+        --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.5);
+        --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.4), 0 1px 2px rgba(0, 0, 0, 0.3);
+        --shadow-card-hover: 0 12px 28px rgba(0, 0, 0, 0.7), 0 0 16px rgba(46, 189, 106, 0.15);
+        --shadow-drawer: -8px 0 36px rgba(0, 0, 0, 0.85);
+        --shadow-control: 0 1px 2px rgba(0, 0, 0, 0.4);
+
+        /* Position Hover Shadow Glows (Dark) */
+        --shadow-glow-forward: 0 14px 30px rgba(217, 72, 47, 0.35), 0 0 16px rgba(217, 72, 47, 0.2);
+        --shadow-glow-midfielder: 0 14px 30px rgba(46, 189, 106, 0.35), 0 0 16px rgba(46, 189, 106, 0.2);
+        --shadow-glow-defender: 0 14px 30px rgba(31, 111, 178, 0.35), 0 0 16px rgba(31, 111, 178, 0.2);
+        --shadow-glow-goalkeeper: 0 14px 30px rgba(217, 134, 15, 0.35), 0 0 16px rgba(217, 134, 15, 0.2);
+
+        --focus-ring: rgba(52, 211, 153, 0.45);
+        --overlay-backdrop: rgba(3, 6, 10, 0.82);
+
+        /* Low Sample Badge (Amber Family - Dark) */
+        --low-sample-bg: rgba(242, 163, 60, 0.18);
+        --low-sample-border: rgba(242, 163, 60, 0.45);
+        --low-sample-text: #fbbd23;
+
+        --sim-badge-bg: rgba(46, 189, 106, 0.2);
+        --sim-badge-text: #86efac;
+        --sim-meter-bg: #1c2836;
+        --sim-meter-fill: #34d399;
+
+        --error-bg: #2e1212;
+        --error-border: #892828;
+        --error-text: #fca5a5;
+        --error-subtext: #f87171;
+
+        --tab-bg: #16202c;
+        --tab-active-bg: #1f8a4c;
+        --tab-active-text: #ffffff;
+
+        --slider-track: #1d2938;
+        --slider-fill: #34d399;
+        --slider-thumb: #ffffff;
+        --slider-thumb-border: #34d399;
+      }
+    }
+
+    /* ==========================================================================
+       RESET & BASE STYLES
+       ========================================================================== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      font-size: 16px;
+      color-scheme: light dark;
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg-page);
+      color: var(--text-primary);
+      min-height: 100vh;
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Subtle pitch geometry background texture */
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      pointer-events: none;
+      z-index: 0;
+      background:
+        radial-gradient(circle at 50% 0%, var(--bg-field-geometry) 0%, var(--transparent) 60%),
+        repeating-linear-gradient(90deg, var(--bg-pitch-stripes) 0px, var(--bg-pitch-stripes) 80px, var(--transparent) 80px, var(--transparent) 160px);
+      opacity: 0.8;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: var(--font-sans);
+      font-weight: 700;
+      font-style: normal;
+      color: var(--text-primary);
+      line-height: 1.25;
+    }
+
+    /* Scoreboard numbers */
+    .mono-number {
+      font-family: var(--font-mono);
+      font-variant-numeric: tabular-nums;
+      font-weight: 700;
+    }
+
+    button {
+      font-family: inherit;
+      border: none;
+      background: none;
+      cursor: pointer;
+      color: inherit;
+    }
+
+    input, select {
+      font-family: inherit;
+      color: var(--text-primary);
+    }
+
+    :focus-visible {
+      outline: 2px solid var(--border-focus);
+      outline-offset: 2px;
+    }
+
+    /* Screen-reader utility */
+    .sr-only {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+
+    /* ==========================================================================
+       LAYOUT WRAPPER
+       ========================================================================== */
+    .app-container {
+      position: relative;
+      z-index: 1;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 0 1rem 3rem 1rem;
+    }
+
+    @media (min-width: 640px) {
+      .app-container {
+        padding: 0 1.5rem 4rem 1.5rem;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .app-container {
+        padding: 0 2rem 5rem 2rem;
+      }
+    }
+
+    /* ==========================================================================
+       EDITORIAL BANNER / HEADER
+       ========================================================================== */
+    .scout-masthead {
+      padding: 1.5rem 0 1rem 0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    .masthead-topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .editorial-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--pitch);
+      background-color: var(--surface-badge);
+      border: 1px solid var(--border-subtle);
+      padding: 0.25rem 0.65rem;
+      border-radius: 9999px;
+    }
+
+    .editorial-tag::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background-color: var(--pitch);
+    }
+
+    .pipeline-status {
+      font-size: 0.75rem;
+      font-family: var(--font-mono);
+      color: var(--text-muted);
+    }
+
+    .masthead-title-row {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem 1.5rem;
+    }
+
+    .masthead-title {
+      font-size: 1.75rem;
+      font-weight: 800;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    @media (min-width: 640px) {
+      .masthead-title {
+        font-size: 2.25rem;
+      }
+    }
+
+    .masthead-desc {
+      font-size: 0.925rem;
+      color: var(--text-secondary);
+      max-width: 780px;
+    }
+
+    /* ==========================================================================
+       STICKY SCOUTING BAR
+       ========================================================================== */
+    .scouting-bar-wrapper {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      margin: 1rem -1rem 1.5rem -1rem;
+      padding: 0.85rem 1rem;
+      background-color: var(--surface-header);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-main);
+      box-shadow: var(--shadow-sm);
+    }
+
+    @media (min-width: 640px) {
+      .scouting-bar-wrapper {
+        margin: 1.25rem -1.5rem 1.75rem -1.5rem;
+        padding: 1rem 1.5rem;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .scouting-bar-wrapper {
+        margin: 1.25rem -2rem 2rem -2rem;
+        padding: 1rem 2rem;
+      }
+    }
+
+    .scouting-bar-inner {
+      display: flex;
+      flex-direction: column;
+      gap: 0.85rem;
+      max-width: 1440px;
+      margin: 0 auto;
+    }
+
+    /* Row 1: Brand + Position Tabs */
+    .bar-row-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.75rem 1.25rem;
+    }
+
+    .bar-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: -0.01em;
+      white-space: nowrap;
+    }
+
+    .bar-brand-badge {
+      background-color: var(--pitch);
+      color: var(--text-inverse);
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      letter-spacing: 0.04em;
+    }
+
+    /* Position Filter Tabs */
+    .position-tabs {
+      display: inline-flex;
+      background-color: var(--tab-bg);
+      padding: 0.25rem;
+      border-radius: 10px;
+      border: 1px solid var(--border-main);
+      overflow-x: auto;
+      max-width: 100%;
+      scrollbar-width: none;
+    }
+
+    .position-tabs::-webkit-scrollbar {
+      display: none;
+    }
+
+    .pos-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.4rem 0.85rem;
+      border-radius: 7px;
+      font-size: 0.825rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      transition: all 0.15s ease;
+    }
+
+    .pos-tab:hover {
+      color: var(--text-primary);
+    }
+
+    .pos-tab.active {
+      background-color: var(--tab-active-bg);
+      color: var(--tab-active-text);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .pos-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+
+    .pos-dot-all { background-color: var(--pitch); }
+    .pos-dot-forward { background-color: var(--forward); }
+    .pos-dot-midfielder { background-color: var(--midfielder); }
+    .pos-dot-defender { background-color: var(--defender); }
+    .pos-dot-goalkeeper { background-color: var(--goalkeeper); }
+
+    /* Row 2: Search, Club dropdown, Minutes slider */
+    .bar-row-controls {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 0.75rem;
+      align-items: center;
+    }
+
+    @media (min-width: 640px) {
+      .bar-row-controls {
+        grid-template-columns: 1.4fr 1fr;
+      }
+    }
+
+    @media (min-width: 1024px) {
+      .bar-row-controls {
+        grid-template-columns: 1.5fr 1fr 1.5fr;
+      }
+    }
+
+    /* Search input */
+    .control-search-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .search-icon {
+      position: absolute;
+      left: 0.85rem;
+      pointer-events: none;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+    }
+
+    .search-input {
+      width: 100%;
+      height: 42px;
+      padding: 0 2.25rem 0 2.4rem;
+      background-color: var(--surface-control);
+      border: 1px solid var(--border-main);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      box-shadow: var(--shadow-control);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .search-input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+      outline: none;
+    }
+
+    .search-clear-btn {
+      position: absolute;
+      right: 0.65rem;
+      width: 22px;
+      height: 22px;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      background-color: var(--surface-badge);
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      font-weight: 700;
+    }
+
+    .search-clear-btn.visible {
+      display: flex;
+    }
+
+    /* Club filter */
+    .control-club-box {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .club-select {
+      width: 100%;
+      height: 42px;
+      padding: 0 2.25rem 0 0.85rem;
+      background-color: var(--surface-control);
+      border: 1px solid var(--border-main);
+      border-radius: 8px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      box-shadow: var(--shadow-control);
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .club-select:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 3px var(--focus-ring);
+      outline: none;
+    }
+
+    .select-chevron {
+      position: absolute;
+      right: 0.85rem;
+      pointer-events: none;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+    }
+
+    /* Minutes range slider */
+    .control-minutes-box {
+      display: flex;
+      flex-direction: column;
+      gap: 0.35rem;
+      background-color: var(--surface-control);
+      padding: 0.4rem 0.85rem;
+      border: 1px solid var(--border-main);
+      border-radius: 8px;
+      box-shadow: var(--shadow-control);
+    }
+
+    .minutes-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 0.775rem;
+    }
+
+    .minutes-label {
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .minutes-threshold-badge {
+      font-family: var(--font-mono);
+      font-weight: 700;
+      color: var(--text-pitch-accent);
+      background-color: var(--surface-badge);
+      padding: 0.1rem 0.45rem;
+      border-radius: 4px;
+      border: 1px solid var(--border-subtle);
+    }
+
+    .minutes-slider {
+      width: 100%;
+      height: 6px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: var(--slider-track);
+      border-radius: 3px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .minutes-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--slider-thumb);
+      border: 3px solid var(--slider-thumb-border);
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.1s ease;
+    }
+
+    .minutes-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.15);
+    }
+
+    .minutes-slider::-moz-range-thumb {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--slider-thumb);
+      border: 3px solid var(--slider-thumb-border);
+      cursor: pointer;
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* ==========================================================================
+       RESULTS CONTEXT & EDITORIAL NOTICE
+       ========================================================================== */
+    .results-context-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.65rem 1.25rem;
+      margin-bottom: 1.5rem;
+      padding: 0.65rem 1rem;
+      background-color: var(--surface);
+      border: 1px solid var(--border-main);
+      border-radius: 8px;
+    }
+
+    .results-count-group {
+      display: flex;
+      align-items: baseline;
+      gap: 0.5rem;
+    }
+
+    .results-count {
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .results-sort-hint {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .results-disclaimer {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+    }
+
+    /* Midfielder Honesty Hint Pill */
+    .honesty-notice-pill {
+      width: 100%;
+      margin-top: -0.5rem;
+      margin-bottom: 1.25rem;
+      padding: 0.55rem 0.85rem;
+      background-color: var(--midfielder-bg);
+      border: 1px solid var(--midfielder-border);
+      border-radius: 6px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      display: none;
+      align-items: flex-start;
+      gap: 0.5rem;
+    }
+
+    .honesty-notice-pill.visible {
+      display: flex;
+    }
+
+    /* ==========================================================================
+       PLAYER CARD GRID
+       ========================================================================== */
+    .player-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1rem;
+      transition: opacity 150ms ease;
+      opacity: 1;
+    }
+
+    .player-grid.is-transitioning {
+      opacity: 0;
+    }
+
+    @media (min-width: 600px) {
+      .player-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (min-width: 960px) {
+      .player-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    @media (min-width: 1280px) {
+      .player-grid {
+        grid-template-columns: repeat(4, 1fr);
+      }
+    }
+
+    /* Card Item (Behaves as accessible button) */
+    .player-card {
+      position: relative;
+      background-color: var(--surface-card);
+      border: 1px solid var(--border-main);
+      border-top: 4px solid var(--pos-accent, var(--pitch));
+      border-radius: 18px;
+      padding: 1.15rem;
+      display: flex;
+      flex-direction: column;
+      text-align: left;
+      cursor: pointer;
+      box-shadow: var(--shadow-card);
+      transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                  box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1),
+                  border-color 0.2s ease;
+      animation: cardRise 0.45s cubic-bezier(0.34, 1.4, 0.64, 1) backwards;
+      animation-delay: calc(var(--stagger-index, 0) * 20ms);
+    }
+
+    /* Position-specific accents & hover shadow glows */
+    .player-card.pos-forward {
+      --pos-accent: var(--forward);
+      --pos-glow: var(--shadow-glow-forward);
+    }
+
+    .player-card.pos-midfielder {
+      --pos-accent: var(--midfielder);
+      --pos-glow: var(--shadow-glow-midfielder);
+    }
+
+    .player-card.pos-defender {
+      --pos-accent: var(--defender);
+      --pos-glow: var(--shadow-glow-defender);
+    }
+
+    .player-card.pos-goalkeeper {
+      --pos-accent: var(--goalkeeper);
+      --pos-glow: var(--shadow-glow-goalkeeper);
+    }
+
+    @keyframes cardRise {
+      from {
+        opacity: 0;
+        transform: translateY(20px) scale(0.97);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .player-card:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-card), var(--pos-glow);
+      border-color: var(--border-strong);
+      border-top-color: var(--pos-accent, var(--pitch));
+      background-color: var(--surface-card-hover);
+    }
+
+    .player-card:focus-visible {
+      outline: 2px solid var(--border-focus);
+      outline-offset: 3px;
+    }
+
+    /* Card Header */
+    .card-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 0.5rem;
+      margin-bottom: 0.65rem;
+    }
+
+    .card-identity {
+      flex: 1;
+      min-width: 0;
+    }
+
+    /* Wrapped player name - never truncated */
+    .card-player-name {
+      font-size: 1.05rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      line-height: 1.3;
+      margin-bottom: 0.25rem;
+      word-break: break-word;
+    }
+
+    .card-meta-line {
+      display: flex;
+      align-items: center;
+      gap: 0.4rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-club-name {
+      font-weight: 500;
+      color: var(--text-secondary);
+    }
+
+    /* Position Chips - Bold, Solid Background */
+    .position-chip {
+      display: inline-flex;
+      align-items: center;
+      padding: 0.25rem 0.65rem;
+      border-radius: 10px;
+      font-size: 0.725rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      white-space: nowrap;
+      border: none;
+      color: var(--white);
+    }
+
+    .position-chip.pos-forward {
+      background-color: var(--forward);
+    }
+
+    .position-chip.pos-midfielder {
+      background-color: var(--midfielder);
+    }
+
+    .position-chip.pos-defender {
+      background-color: var(--defender);
+    }
+
+    .position-chip.pos-goalkeeper {
+      background-color: var(--goalkeeper);
+    }
+
+    /* Low Sample Badge - Informational Amber */
+    .card-low-sample {
+      margin-bottom: 0.75rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      padding: 0.25rem 0.6rem;
+      border-radius: 10px;
+      font-size: 0.725rem;
+      font-weight: 600;
+      background-color: var(--low-sample-bg);
+      border: 1px solid var(--low-sample-border);
+      color: var(--low-sample-text);
+    }
+
+    .low-sample-dot {
+      color: var(--amber);
+      font-size: 0.65rem;
+      line-height: 1;
+    }
+
+    /* Headline Stats - Reduced chrome, clear primary hierarchy */
+    .card-stats-row {
+      margin-top: auto;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.4rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid var(--border-subtle);
+      align-items: flex-end;
+    }
+
+    .card-stat-box {
+      background: var(--transparent);
+      border: none;
+      padding: 0.15rem 0;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    /* Primary Stat (First in card) */
+    .card-stat-box:first-child .card-stat-value {
+      font-size: 1.45rem;
+      line-height: 1.1;
+      color: var(--pos-accent, var(--pitch));
+      font-weight: 800;
+    }
+
+    .card-stat-box:first-child .card-stat-label {
+      font-size: 0.675rem;
+      font-weight: 700;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-top: 0.25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    /* Secondary Stats */
+    .card-stat-box:not(:first-child) .card-stat-value {
+      font-size: 0.95rem;
+      line-height: 1.15;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+
+    .card-stat-box:not(:first-child) .card-stat-label {
+      font-size: 0.65rem;
+      font-weight: 600;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+      margin-top: 0.25rem;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-cta-foot {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 0.75rem;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .player-card:hover .card-cta-foot {
+      color: var(--pitch);
+    }
+
+    /* ==========================================================================
+       EMPTY & ERROR STATES
+       ========================================================================== */
+    .empty-state {
+      grid-column: 1 / -1;
+      background-color: var(--surface);
+      border: 1px dashed var(--border-strong);
+      border-radius: 12px;
+      padding: 3.5rem 1.5rem;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .empty-icon {
+      font-size: 2.5rem;
+      line-height: 1;
+    }
+
+    .empty-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+
+    .empty-text {
+      font-size: 0.875rem;
+      color: var(--text-muted);
+      max-width: 440px;
+    }
+
+    .empty-reset-btn {
+      margin-top: 0.5rem;
+      background-color: var(--pitch);
+      color: var(--text-inverse);
+      font-size: 0.85rem;
+      font-weight: 600;
+      padding: 0.55rem 1.25rem;
+      border-radius: 8px;
+      box-shadow: var(--shadow-sm);
+      transition: opacity 0.15s ease;
+    }
+
+    .empty-reset-btn:hover {
+      opacity: 0.9;
+    }
+
+    .error-banner {
+      background-color: var(--error-bg);
+      border: 1px solid var(--error-border);
+      border-radius: 10px;
+      padding: 1.5rem;
+      margin: 1.5rem 0;
+      color: var(--error-text);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .error-header {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 700;
+      font-size: 1.1rem;
+    }
+
+    .error-message {
+      font-size: 0.875rem;
+      line-height: 1.6;
+      color: var(--error-subtext);
+    }
+
+    .error-codeblock {
+      background-color: var(--surface-tile);
+      border: 1px solid var(--border-main);
+      border-radius: 6px;
+      padding: 0.65rem 0.85rem;
+      font-family: var(--font-mono);
+      font-size: 0.825rem;
+      color: var(--text-primary);
+      overflow-x: auto;
+    }
+
+    /* ==========================================================================
+       PLAYER DETAIL DRAWER & BACKDROP
+       ========================================================================== */
+    .drawer-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background-color: var(--overlay-backdrop);
+      z-index: 50;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .drawer-backdrop.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer-panel {
+      position: fixed;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      max-width: 580px;
+      background-color: var(--surface-drawer);
+      z-index: 51;
+      box-shadow: var(--shadow-drawer);
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+      overflow: hidden;
+    }
+
+    .drawer-backdrop.open .drawer-panel {
+      transform: translateX(0);
+    }
+
+    /* Drawer Header */
+    .drawer-head {
+      padding: 1.25rem 1.5rem;
+      border-bottom: 1px solid var(--border-main);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      background-color: var(--surface);
+    }
+
+    .drawer-player-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .drawer-title-row {
+      display: flex;
+      align-items: baseline;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.35rem;
+    }
+
+    .drawer-player-name {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: var(--text-primary);
+    }
+
+    .drawer-sub-meta {
+      display: flex;
+      align-items: center;
+      gap: 0.65rem;
+      flex-wrap: wrap;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      margin-top: 0.2rem;
+    }
+
+    .drawer-club {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .drawer-close-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background-color: var(--surface-badge);
+      border: 1px solid var(--border-main);
+      color: var(--text-secondary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.15rem;
+      font-weight: 700;
+      transition: background-color 0.15s ease, color 0.15s ease;
+      flex-shrink: 0;
+    }
+
+    .drawer-close-btn:hover {
+      background-color: var(--tab-bg);
+      color: var(--text-primary);
+    }
+
+    /* Drawer Scrollable Body */
+    .drawer-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1.75rem;
+    }
+
+    /* Drawer Low Sample Warning */
+    .drawer-warning-box {
+      background-color: var(--low-sample-bg);
+      border: 1px solid var(--low-sample-border);
+      color: var(--low-sample-text);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.825rem;
+      display: flex;
+      gap: 0.5rem;
+      align-items: flex-start;
+    }
+
+    /* Drawer Section Headers */
+    .drawer-section-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 0.85rem;
+    }
+
+    .drawer-section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      text-transform: uppercase;
+      color: var(--text-primary);
+    }
+
+    .drawer-section-sub {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Stat Tiles Grid in Drawer */
+    .stat-tiles-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.65rem;
+    }
+
+    @media (min-width: 480px) {
+      .stat-tiles-grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    .stat-tile {
+      background-color: var(--surface-tile);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 0.75rem;
+      display: flex;
+      flex-direction: column;
+      transition: background-color 0.15s ease;
+    }
+
+    .stat-tile:hover {
+      background-color: var(--surface-tile-hover);
+    }
+
+    .stat-tile-value {
+      font-size: 1.35rem;
+      line-height: 1.1;
+      color: var(--text-primary);
+    }
+
+    .stat-tile-label {
+      font-size: 0.725rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-top: 0.35rem;
+    }
+
+    /* Closest Matches Section */
+    .similar-section {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .similar-honesty-note {
+      font-size: 0.8rem;
+      line-height: 1.45;
+      padding: 0.65rem 0.85rem;
+      background-color: var(--surface-tile);
+      border: 1px solid var(--border-subtle);
+      border-radius: 6px;
+      color: var(--text-muted);
+    }
+
+    .similar-list {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .similar-item-btn {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.75rem 0.85rem;
+      background-color: var(--surface);
+      border: 1px solid var(--border-main);
+      border-radius: 8px;
+      text-align: left;
+      transition: transform 0.15s ease, border-color 0.15s ease, background-color 0.15s ease;
+      gap: 0.75rem;
+    }
+
+    .similar-item-btn:hover {
+      transform: translateX(3px);
+      border-color: var(--pitch);
+      background-color: var(--surface-tile);
+    }
+
+    .similar-item-btn:focus-visible {
+      outline: 2px solid var(--border-focus);
+    }
+
+    .similar-player-col {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .similar-name {
+      font-size: 0.925rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .similar-club {
+      font-size: 0.775rem;
+      color: var(--text-muted);
+    }
+
+    .similar-score-col {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .similar-meter {
+      width: 48px;
+      height: 6px;
+      background-color: var(--sim-meter-bg);
+      border-radius: 3px;
+      overflow: hidden;
+      display: none;
+    }
+
+    @media (min-width: 420px) {
+      .similar-meter {
+        display: block;
+      }
+    }
+
+    .similar-meter-fill {
+      height: 100%;
+      background-color: var(--sim-meter-fill);
+      border-radius: 3px;
+    }
+
+    .similar-score-badge {
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 700;
+      padding: 0.2rem 0.5rem;
+      border-radius: 6px;
+      background-color: var(--sim-badge-bg);
+      color: var(--sim-badge-text);
+      white-space: nowrap;
+    }
+
+    .similar-toggle-btn {
+      align-self: center;
+      margin-top: 0.25rem;
+      padding: 0.5rem 1rem;
+      font-size: 0.825rem;
+      font-weight: 600;
+      color: var(--pitch);
+      background-color: var(--surface-tile);
+      border: 1px solid var(--border-main);
+      border-radius: 6px;
+      transition: background-color 0.15s ease;
+    }
+
+    .similar-toggle-btn:hover {
+      background-color: var(--tab-bg);
+    }
+
+    .similar-empty-text {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-style: normal;
+      padding: 0.75rem;
+      background-color: var(--surface-tile);
+      border-radius: 6px;
+    }
+
+    /* ==========================================================================
+       FOOTER
+       ========================================================================== */
+    .scout-footer {
+      margin-top: 4rem;
+      padding-top: 2rem;
+      border-top: 1px solid var(--border-main);
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+      font-size: 0.825rem;
+      color: var(--text-muted);
+    }
+
+    @media (min-width: 640px) {
+      .scout-footer {
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
+    }
+
+    .footer-source-credit {
+      font-weight: 600;
+      color: var(--text-secondary);
+    }
+
+    .footer-meta-date {
+      font-family: var(--font-mono);
+      font-size: 0.775rem;
+    }
+
+    /* ==========================================================================
+       ACCESSIBILITY / REDUCED MOTION
+       ========================================================================== */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.001ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.001ms !important;
+      }
+      .player-card {
+        animation: none !important;
+      }
+      .drawer-panel {
+        transition: none !important;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+
+    <!-- Masthead -->
+    <header class="scout-masthead">
+      <div class="masthead-topline">
+        <span class="editorial-tag">Premier League Scouting Engine</span>
+        <span class="pipeline-status" id="pipeline-status-text">Season 2025–26 • Normalized Per-90 Data</span>
+      </div>
+      <div class="masthead-title-row">
+        <h1 class="masthead-title">
+          <span>⚽</span>
+          <span>PL Scout 25/26</span>
+        </h1>
+      </div>
+      <p class="masthead-desc">
+        Style-based player scouting and precomputed cosine similarity profiles across 20 Premier League clubs. Explore statistical twins based on on-pitch outputs, not reputation.
+      </p>
+    </header>
+
+    <!-- Sticky Scouting Bar -->
+    <section class="scouting-bar-wrapper" aria-label="Scouting Controls">
+      <div class="scouting-bar-inner">
+        
+        <!-- Top Bar Row: Brand + Position Tabs -->
+        <div class="bar-row-top">
+          <div class="bar-brand">
+            <span>⚽ PL Scout</span>
+            <span class="bar-brand-badge">25/26</span>
+          </div>
+
+          <!-- Position Filter Tabs -->
+          <nav class="position-tabs" role="tablist" aria-label="Position Group Filters">
+            <button class="pos-tab active" data-pos="all" role="tab" aria-selected="true" id="tab-all">
+              <span class="pos-dot pos-dot-all"></span> All
+            </button>
+            <button class="pos-tab" data-pos="forward" role="tab" aria-selected="false" id="tab-forward">
+              <span class="pos-dot pos-dot-forward"></span> Forwards
+            </button>
+            <button class="pos-tab" data-pos="midfielder" role="tab" aria-selected="false" id="tab-midfielder">
+              <span class="pos-dot pos-dot-midfielder"></span> Midfielders
+            </button>
+            <button class="pos-tab" data-pos="defender" role="tab" aria-selected="false" id="tab-defender">
+              <span class="pos-dot pos-dot-defender"></span> Defenders
+            </button>
+            <button class="pos-tab" data-pos="goalkeeper" role="tab" aria-selected="false" id="tab-goalkeeper">
+              <span class="pos-dot pos-dot-goalkeeper"></span> Goalkeepers
+            </button>
+          </nav>
+        </div>
+
+        <!-- Bottom Controls Row: Search + Club + Minutes Slider -->
+        <div class="bar-row-controls">
+          
+          <!-- Search Input -->
+          <div class="control-search-box">
+            <label for="player-search-input" class="sr-only">Search player by name</label>
+            <span class="search-icon" aria-hidden="true">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </span>
+            <input type="text" id="player-search-input" class="search-input" placeholder="Search player (e.g. Saka, Saliba, Raya)..." autocomplete="off" spellcheck="false">
+            <button type="button" id="search-clear-btn" class="search-clear-btn" aria-label="Clear search input">✕</button>
+          </div>
+
+          <!-- Club Dropdown -->
+          <div class="control-club-box">
+            <label for="club-filter-select" class="sr-only">Filter by Club</label>
+            <select id="club-filter-select" class="club-select">
+              <option value="all">All Clubs (Loading...)</option>
+            </select>
+            <span class="select-chevron" aria-hidden="true">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </span>
+          </div>
+
+          <!-- Minutes Range Slider -->
+          <div class="control-minutes-box">
+            <div class="minutes-header">
+              <label for="minutes-slider-input" class="minutes-label">Minutes Played</label>
+              <span class="minutes-threshold-badge" id="minutes-display">≥ 0 mins</span>
+            </div>
+            <input type="range" id="minutes-slider-input" class="minutes-slider" min="0" max="3420" step="90" value="0" aria-valuemin="0" aria-valuemax="3420" aria-valuenow="0">
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Error State Placeholder -->
+    <div id="fetch-error-container" style="display: none;">
+      <div class="error-banner" role="alert">
+        <div class="error-header">
+          <span>⚠️</span>
+          <span>Unable to Load Player Scouting Data</span>
+        </div>
+        <p class="error-message">
+          The player database at <code>data/players.json</code> could not be loaded via <code>fetch()</code>.
+          This page must be served over an active HTTP connection (such as Python's built-in HTTP server) because modern browsers block asynchronous file fetching when opened directly via a <code>file://</code> URL.
+        </p>
+        <div class="error-codeblock">
+          # Launch a local server inside the web/ directory:<br>
+          python3 -m http.server 8000
+        </div>
+        <div>
+          <button type="button" id="retry-fetch-btn" class="empty-reset-btn">Retry Loading Data</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Midfielder Honesty Hint -->
+    <div id="midfielder-honesty-pill" class="honesty-notice-pill" role="note">
+      <span>ℹ️</span>
+      <div>
+        <strong>Midfielder Metric Notice:</strong> Similarity for midfielders is derived strictly from defensive engagements, shooting, cards, and playing time. Passing completion, progressive carries, and shot-creating actions are unavailable in FBref post-January 2026.
+      </div>
+    </div>
+
+    <!-- Results Context -->
+    <div class="results-context-bar" id="results-bar">
+      <div class="results-count-group">
+        <span class="results-count" id="results-count-text">Loading players...</span>
+        <span class="results-sort-hint">sorted by minutes played descending</span>
+      </div>
+      <div class="results-disclaimer">
+        <span>📊</span>
+        <span>Statistical profiles, not a player ranking</span>
+      </div>
+    </div>
+
+    <!-- Player Card Grid -->
+    <main>
+      <div class="player-grid" id="player-grid" aria-live="polite">
+        <!-- Dynamically populated -->
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="scout-footer">
+      <div class="footer-source-credit">
+        FBref / Sports Reference, 2025-26 Premier League season
+      </div>
+      <div class="footer-meta-date" id="footer-generated-date">
+        Generated: October 2026
+      </div>
+    </footer>
+
+  </div>
+
+  <!-- Player Detail Drawer (Right-side sheet + Backdrop) -->
+  <div class="drawer-backdrop" id="drawer-backdrop" aria-hidden="true">
+    <div class="drawer-panel" id="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="drawer-player-name">
+      
+      <!-- Drawer Header -->
+      <div class="drawer-head">
+        <div class="drawer-player-info">
+          <div class="drawer-title-row">
+            <h2 class="drawer-player-name" id="drawer-player-name">—</h2>
+            <span class="position-chip" id="drawer-position-chip">FW</span>
+          </div>
+          <div class="drawer-sub-meta">
+            <span class="drawer-club" id="drawer-club-name">—</span>
+            <span aria-hidden="true">•</span>
+            <span id="drawer-age-text">Age —</span>
+            <span aria-hidden="true">•</span>
+            <span class="mono-number" id="drawer-minutes-text">— mins</span>
+          </div>
+        </div>
+        <button type="button" class="drawer-close-btn" id="drawer-close-btn" aria-label="Close player detail panel">✕</button>
+      </div>
+
+      <!-- Drawer Scrollable Content -->
+      <div class="drawer-body">
+        
+        <!-- Low Sample Warning (if applicable) -->
+        <div class="drawer-warning-box" id="drawer-low-sample-warning" style="display: none;">
+          <span>⚠️</span>
+          <div>
+            <strong>Low Sample Size:</strong> This player has played fewer than 90 league minutes (<span id="drawer-low-sample-mins">0</span> mins). Per-90 rates are extrapolated from limited match action and should be interpreted with caution.
+          </div>
+        </div>
+
+        <!-- Section 1: Statistical Profile Grid -->
+        <section aria-labelledby="heading-stats-profile">
+          <div class="drawer-section-header">
+            <h3 class="drawer-section-title" id="heading-stats-profile">Statistical Profile</h3>
+            <span class="drawer-section-sub">Standardized league metrics</span>
+          </div>
+          <div class="stat-tiles-grid" id="drawer-stats-grid">
+            <!-- Stat tiles injected here -->
+          </div>
+        </section>
+
+        <!-- Section 2: Closest Statistical Matches -->
+        <section class="similar-section" aria-labelledby="heading-similar-matches">
+          <div class="drawer-section-header">
+            <h3 class="drawer-section-title" id="heading-similar-matches">Closest Statistical Matches</h3>
+            <span class="drawer-section-sub">Precomputed Cosine Similarity</span>
+          </div>
+
+          <div class="similar-honesty-note" id="drawer-similar-honesty">
+            Matches represent statistical output profiles within the player’s position group, not proof of identical tactical roles or talent level.
+          </div>
+
+          <div class="similar-list" id="drawer-similar-list">
+            <!-- Similar player items injected here -->
+          </div>
+
+          <button type="button" id="drawer-similar-toggle-btn" class="similar-toggle-btn" style="display: none;">
+            Show More (15 more)
+          </button>
+        </section>
+
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Vanilla Application Logic -->
+  <script>
+    (function () {
+      "use strict";
+
+      // Application State
+      const state = {
+        meta: null,
+        players: [],
+        filteredPlayers: [],
+        activePosition: "all",
+        searchQuery: "",
+        selectedClub: "all",
+        minMinutesThreshold: 0,
+        maxMinutesInDataset: 3420,
+        selectedPlayer: null,
+        showingAllSimilar: false,
+        lastActiveElement: null,
+        activeCountUpAnimations: []
+      };
+
+      // Position headline stats mappings
+      const HEADLINE_STATS_MAP = {
+        forward: [
+          { key: "goals", label: "Goals", format: "int" },
+          { key: "assists", label: "Assists", format: "int" },
+          { key: "goals_per90", label: "G / 90", format: "decimal" }
+        ],
+        midfielder: [
+          { key: "goals_assists", label: "G + A", format: "int" },
+          { key: "tackles_won_per90", label: "TklW / 90", format: "decimal" },
+          { key: "interceptions_per90", label: "Int / 90", format: "decimal" }
+        ],
+        defender: [
+          { key: "tackles_won_per90", label: "TklW / 90", format: "decimal" },
+          { key: "interceptions_per90", label: "Int / 90", format: "decimal" },
+          { key: "fouls_committed_per90", label: "Fouls / 90", format: "decimal" }
+        ],
+        goalkeeper: [
+          { key: "saves", label: "Saves", format: "int" },
+          { key: "save_pct", label: "Save %", format: "percent" },
+          { key: "clean_sheets", label: "Clean Sheets", format: "int" }
+        ]
+      };
+
+      // Curated Detailed Stat Keys per Group for Detail Drawer
+      const DETAIL_STATS_KEYS = {
+        forward: [
+          "goals", "assists", "goals_assists",
+          "goals_per90", "assists_per90", "goals_assists_per90",
+          "shots", "shots_per90", "shots_on_target", "shots_on_target_per90",
+          "crosses_per90", "fouls_drawn_per90",
+          "tackles_won_per90", "interceptions_per90", "yellow_cards"
+        ],
+        midfielder: [
+          "goals_assists", "goals_assists_per90",
+          "goals", "assists",
+          "tackles_won", "tackles_won_per90",
+          "interceptions", "interceptions_per90",
+          "shots_per90", "crosses_per90",
+          "fouls_committed_per90", "fouls_drawn_per90",
+          "yellow_cards", "team_goals_on_pitch_per90", "team_goals_against_on_pitch_per90"
+        ],
+        defender: [
+          "tackles_won", "tackles_won_per90",
+          "interceptions", "interceptions_per90",
+          "fouls_committed", "fouls_committed_per90",
+          "fouls_drawn_per90", "team_goals_against_on_pitch_per90",
+          "crosses_per90", "goals", "assists",
+          "yellow_cards", "red_cards"
+        ],
+        goalkeeper: [
+          "saves", "save_pct",
+          "clean_sheets", "clean_sheet_pct",
+          "goals_against", "goals_against_per90",
+          "saves_per90", "shots_on_target_against", "shots_on_target_against_per90",
+          "wins", "draws", "losses",
+          "penalties_saved", "penalty_goals_conceded"
+        ]
+      };
+
+      // DOM Elements
+      const els = {
+        tabs: document.querySelectorAll(".pos-tab"),
+        searchInput: document.getElementById("player-search-input"),
+        searchClearBtn: document.getElementById("search-clear-btn"),
+        clubSelect: document.getElementById("club-filter-select"),
+        minutesSlider: document.getElementById("minutes-slider-input"),
+        minutesDisplay: document.getElementById("minutes-display"),
+        resultsCountText: document.getElementById("results-count-text"),
+        playerGrid: document.getElementById("player-grid"),
+        errorContainer: document.getElementById("fetch-error-container"),
+        retryFetchBtn: document.getElementById("retry-fetch-btn"),
+        midfielderHonestyPill: document.getElementById("midfielder-honesty-pill"),
+        footerGeneratedDate: document.getElementById("footer-generated-date"),
+        pipelineStatusText: document.getElementById("pipeline-status-text"),
+        // Drawer elements
+        drawerBackdrop: document.getElementById("drawer-backdrop"),
+        drawerPanel: document.getElementById("drawer-panel"),
+        drawerCloseBtn: document.getElementById("drawer-close-btn"),
+        drawerPlayerName: document.getElementById("drawer-player-name"),
+        drawerPositionChip: document.getElementById("drawer-position-chip"),
+        drawerClubName: document.getElementById("drawer-club-name"),
+        drawerAgeText: document.getElementById("drawer-age-text"),
+        drawerMinutesText: document.getElementById("drawer-minutes-text"),
+        drawerLowSampleWarning: document.getElementById("drawer-low-sample-warning"),
+        drawerLowSampleMins: document.getElementById("drawer-low-sample-mins"),
+        drawerStatsGrid: document.getElementById("drawer-stats-grid"),
+        drawerSimilarHonesty: document.getElementById("drawer-similar-honesty"),
+        drawerSimilarList: document.getElementById("drawer-similar-list"),
+        drawerSimilarToggleBtn: document.getElementById("drawer-similar-toggle-btn")
+      };
+
+      // Utility: Format snake_case keys into readable human labels programmatically
+      function formatStatLabel(snakeKey) {
+        const specialLabels = {
+          "goals_assists": "Goals + Assists",
+          "goals_assists_per90": "G+A / 90",
+          "goals_per90": "Goals / 90",
+          "assists_per90": "Assists / 90",
+          "shots_per90": "Shots / 90",
+          "shots_on_target": "Shots on Target",
+          "shots_on_target_per90": "SoT / 90",
+          "crosses_per90": "Crosses / 90",
+          "fouls_drawn_per90": "Fouls Drawn / 90",
+          "fouls_committed_per90": "Fouls / 90",
+          "tackles_won": "Tackles Won",
+          "tackles_won_per90": "Tackles Won / 90",
+          "interceptions_per90": "Interceptions / 90",
+          "save_pct": "Save Pct",
+          "clean_sheet_pct": "Clean Sheet Pct",
+          "goals_against": "Goals Against",
+          "goals_against_per90": "GA / 90",
+          "saves_per90": "Saves / 90",
+          "shots_on_target_against": "Shots Faced",
+          "shots_on_target_against_per90": "Shots Faced / 90",
+          "team_goals_on_pitch_per90": "Team GF / 90",
+          "team_goals_against_on_pitch_per90": "Team GA / 90",
+          "team_goals_against_on_pitch": "Team GA on Pitch"
+        };
+
+        if (specialLabels[snakeKey]) {
+          return specialLabels[snakeKey];
+        }
+
+        return snakeKey
+          .replace(/_per90$/i, " / 90")
+          .replace(/_pct$/i, " %")
+          .split("_")
+          .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+          .join(" ");
+      }
+
+      // Utility: Format numbers cleanly
+      function formatNumber(val, decimals = 2) {
+        if (val === null || val === undefined || isNaN(val)) return "—";
+        const num = Number(val);
+        if (decimals === 0 || Number.isInteger(num)) {
+          return Math.round(num).toLocaleString();
+        }
+        return num.toFixed(decimals);
+      }
+
+      // Utility: Human date formatting
+      function formatHumanDate(dateStr) {
+        if (!dateStr) return "October 2026";
+        try {
+          const parts = dateStr.split("-");
+          if (parts.length === 3) {
+            const date = new Date(parts[0], parts[1] - 1, parts[2]);
+            return date.toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+          }
+          return dateStr;
+        } catch (e) {
+          return dateStr;
+        }
+      }
+
+      // Populate Club Dropdown from JSON
+      function initClubDropdown(players) {
+        const clubSet = new Set();
+        players.forEach(p => {
+          if (p.club) clubSet.add(p.club);
+        });
+        const sortedClubs = Array.from(clubSet).sort();
+
+        els.clubSelect.innerHTML = `<option value="all">All Clubs (${sortedClubs.length})</option>`;
+        sortedClubs.forEach(club => {
+          const opt = document.createElement("option");
+          opt.value = club;
+          opt.textContent = club;
+          els.clubSelect.appendChild(opt);
+        });
+      }
+
+      // Set up Minutes Slider based on maximum in JSON
+      function initMinutesSlider(players) {
+        let maxM = 0;
+        players.forEach(p => {
+          if (typeof p.minutes === "number" && p.minutes > maxM) {
+            maxM = p.minutes;
+          }
+        });
+        state.maxMinutesInDataset = maxM || 3420;
+        els.minutesSlider.max = state.maxMinutesInDataset;
+        els.minutesSlider.value = 0;
+        updateMinutesDisplay(0);
+      }
+
+      function updateMinutesDisplay(val) {
+        state.minMinutesThreshold = Number(val);
+        els.minutesDisplay.textContent = `≥ ${state.minMinutesThreshold} mins`;
+      }
+
+      // Filter and Sort Players
+      function applyFilters() {
+        const query = state.searchQuery.trim().toLowerCase();
+        const pos = state.activePosition;
+        const club = state.selectedClub;
+        const minMin = state.minMinutesThreshold;
+
+        // Honesty notice pill for midfielders
+        if (pos === "midfielder") {
+          els.midfielderHonestyPill.classList.add("visible");
+        } else {
+          els.midfielderHonestyPill.classList.remove("visible");
+        }
+
+        const filtered = state.players.filter(p => {
+          // Position filter
+          if (pos !== "all" && p.position_group !== pos) {
+            return false;
+          }
+          // Club filter
+          if (club !== "all" && p.club !== club) {
+            return false;
+          }
+          // Minutes threshold
+          const playerMin = typeof p.minutes === "number" ? p.minutes : 0;
+          if (playerMin < minMin) {
+            return false;
+          }
+          // Search query
+          if (query) {
+            const nameMatch = p.name && p.name.toLowerCase().includes(query);
+            const clubMatch = p.club && p.club.toLowerCase().includes(query);
+            if (!nameMatch && !clubMatch) {
+              return false;
+            }
+          }
+          return true;
+        });
+
+        // Always sort cards by minutes played descending within active filters
+        filtered.sort((a, b) => {
+          const aMin = typeof a.minutes === "number" ? a.minutes : 0;
+          const bMin = typeof b.minutes === "number" ? b.minutes : 0;
+          return bMin - aMin;
+        });
+
+        state.filteredPlayers = filtered;
+        renderResultsCount();
+        renderPlayerGrid();
+      }
+
+      // Render Results Count Context
+      function renderResultsCount() {
+        const count = state.filteredPlayers.length;
+        els.resultsCountText.textContent = `${count.toLocaleString()} ${count === 1 ? "player" : "players"} found`;
+      }
+
+      // Render Player Cards Grid
+      function renderPlayerGrid() {
+        els.playerGrid.innerHTML = "";
+
+        if (state.filteredPlayers.length === 0) {
+          renderEmptyState();
+          return;
+        }
+
+        const fragment = document.createDocumentFragment();
+        
+        state.filteredPlayers.forEach((player, idx) => {
+          const card = createPlayerCardElement(player, idx);
+          fragment.appendChild(card);
+        });
+
+        els.playerGrid.appendChild(fragment);
+      }
+
+      // Build Individual Player Card
+      function createPlayerCardElement(player, index) {
+        const group = player.position_group || "forward";
+        const groupLabel = group.charAt(0).toUpperCase() + group.slice(1);
+        const headlineSpecs = HEADLINE_STATS_MAP[group] || HEADLINE_STATS_MAP.forward;
+
+        const card = document.createElement("button");
+        card.type = "button";
+        card.className = `player-card pos-${group}`;
+        card.setAttribute("role", "button");
+        card.setAttribute("aria-haspopup", "dialog");
+        card.setAttribute("aria-label", `View scouting profile for ${player.name}, ${player.club}`);
+        
+        // Cap stagger delay so initial animations don't take too long
+        const staggerIndex = Math.min(index, 24);
+        card.style.setProperty("--stagger-index", staggerIndex);
+
+        // Headline stats row HTML
+        const statsHtml = headlineSpecs.map(spec => {
+          let val = player.stats ? player.stats[spec.key] : null;
+          let formattedVal = "—";
+          if (val !== null && val !== undefined) {
+            if (spec.format === "percent") {
+              formattedVal = `${formatNumber(val, 1)}%`;
+            } else if (spec.format === "int") {
+              formattedVal = formatNumber(val, 0);
+            } else {
+              formattedVal = formatNumber(val, 2);
+            }
+          }
+          return `
+            <div class="card-stat-box">
+              <span class="card-stat-value mono-number">${formattedVal}</span>
+              <span class="card-stat-label">${spec.label}</span>
+            </div>
+          `;
+        }).join("");
+
+        // Low sample pill - informational
+        const lowSampleHtml = player.low_sample
+          ? `<div class="card-low-sample"><span class="low-sample-dot" aria-hidden="true">●</span> Low sample (${player.minutes ?? 0}m / &lt;90m)</div>`
+          : "";
+
+        card.innerHTML = `
+          <div class="card-head">
+            <div class="card-identity">
+              <h3 class="card-player-name">${escapeHtml(player.name)}</h3>
+              <div class="card-meta-line">
+                <span class="card-club-name">${escapeHtml(player.club || "—")}</span>
+                <span aria-hidden="true">•</span>
+                <span>${escapeHtml(player.position || groupLabel)}</span>
+              </div>
+            </div>
+            <span class="position-chip pos-${group}">${groupLabel}</span>
+          </div>
+
+          ${lowSampleHtml}
+
+          <div class="card-stats-row">
+            ${statsHtml}
+          </div>
+
+          <div class="card-cta-foot">
+            <span class="mono-number">${player.minutes ? player.minutes.toLocaleString() + " mins" : "0 mins"}</span>
+            <span>View Scouting Profile →</span>
+          </div>
+        `;
+
+        card.addEventListener("click", () => {
+          openPlayerDetail(player, card);
+        });
+
+        return card;
+      }
+
+      // Render Empty State
+      function renderEmptyState() {
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.innerHTML = `
+          <span class="empty-icon" aria-hidden="true">🔍</span>
+          <h3 class="empty-title">No players found matching your criteria</h3>
+          <p class="empty-text">
+            Try lowering your minutes threshold, clearing the search query, or selecting a different position group to see available profiles.
+          </p>
+          <button type="button" class="empty-reset-btn" id="empty-reset-action">Reset All Filters</button>
+        `;
+        els.playerGrid.appendChild(empty);
+
+        document.getElementById("empty-reset-action").addEventListener("click", resetAllFilters);
+      }
+
+      // Reset All Filters
+      function resetAllFilters() {
+        state.activePosition = "all";
+        state.searchQuery = "";
+        state.selectedClub = "all";
+        state.minMinutesThreshold = 0;
+
+        els.searchInput.value = "";
+        els.searchClearBtn.classList.remove("visible");
+        els.clubSelect.value = "all";
+        els.minutesSlider.value = 0;
+        updateMinutesDisplay(0);
+
+        els.tabs.forEach(tab => {
+          const isAll = tab.dataset.pos === "all";
+          tab.classList.toggle("active", isAll);
+          tab.setAttribute("aria-selected", isAll ? "true" : "false");
+        });
+
+        applyFilters();
+      }
+
+      // Open Player Detail Drawer
+      function openPlayerDetail(player, triggerElement) {
+        state.selectedPlayer = player;
+        state.showingAllSimilar = false;
+        state.lastActiveElement = triggerElement || document.activeElement;
+
+        // Cancel previous countup animations
+        cancelCountUpAnimations();
+
+        const group = player.position_group || "forward";
+        const groupLabel = group.charAt(0).toUpperCase() + group.slice(1);
+
+        // Header
+        els.drawerPlayerName.textContent = player.name;
+        els.drawerClubName.textContent = player.club || "—";
+        els.drawerAgeText.textContent = player.age ? `Age ${player.age}` : "Age —";
+        
+        const minsFormatted = player.minutes ? player.minutes.toLocaleString() : "0";
+        const nineties = player.nineties ? ` (${player.nineties.toFixed(1)} 90s)` : "";
+        els.drawerMinutesText.textContent = `${minsFormatted} mins${nineties}`;
+
+        els.drawerPositionChip.textContent = groupLabel;
+        els.drawerPositionChip.className = `position-chip pos-${group}`;
+
+        // Low sample warning
+        if (player.low_sample) {
+          els.drawerLowSampleWarning.style.display = "flex";
+          els.drawerLowSampleMins.textContent = player.minutes ?? 0;
+        } else {
+          els.drawerLowSampleWarning.style.display = "none";
+        }
+
+        // Midfielder honesty note in drawer
+        if (group === "midfielder") {
+          els.drawerSimilarHonesty.innerHTML = `
+            <strong>Midfielder Constraint:</strong> Cosine similarity is computed using defensive actions, shooting, and disciplinary records. Passing progression, creation, and distribution metrics were not published in the source release.
+          `;
+        } else {
+          els.drawerSimilarHonesty.textContent = `
+            Matches represent statistical output profiles within the ${groupLabel.toLowerCase()} pool, not proof of identical tactical roles or talent level.
+          `;
+        }
+
+        // Render Detail Stats Grid
+        renderDrawerStats(player, group);
+
+        // Render Closest Matches
+        renderDrawerSimilar(player);
+
+        // Open Drawer
+        els.drawerBackdrop.classList.add("open");
+        els.drawerBackdrop.setAttribute("aria-hidden", "false");
+        document.body.style.overflow = "hidden";
+
+        // Focus close button for accessibility
+        setTimeout(() => {
+          els.drawerCloseBtn.focus();
+        }, 50);
+      }
+
+      // Close Player Detail Drawer
+      function closePlayerDetail() {
+        cancelCountUpAnimations();
+        els.drawerBackdrop.classList.remove("open");
+        els.drawerBackdrop.setAttribute("aria-hidden", "true");
+        document.body.style.overflow = "";
+
+        // Return focus to triggering card
+        if (state.lastActiveElement && typeof state.lastActiveElement.focus === "function") {
+          state.lastActiveElement.focus();
+        }
+      }
+
+      // Render Drawer Stats with Animated Count-up
+      function renderDrawerStats(player, group) {
+        els.drawerStatsGrid.innerHTML = "";
+        const statKeys = DETAIL_STATS_KEYS[group] || Object.keys(player.stats || {}).slice(0, 12);
+        const stats = player.stats || {};
+
+        const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        statKeys.forEach(key => {
+          const rawVal = stats[key];
+          if (rawVal === undefined || rawVal === null) return;
+
+          const isPercent = key.endsWith("_pct") || key === "save_pct";
+          const isPer90 = key.endsWith("_per90");
+          const isDecimal = !Number.isInteger(rawVal) || isPer90 || isPercent;
+
+          const tile = document.createElement("div");
+          tile.className = "stat-tile";
+
+          const valEl = document.createElement("span");
+          valEl.className = "stat-tile-value mono-number";
+
+          const labelEl = document.createElement("span");
+          labelEl.className = "stat-tile-label";
+          labelEl.textContent = formatStatLabel(key);
+
+          const finalNum = Number(rawVal);
+
+          if (prefersReducedMotion || isNaN(finalNum)) {
+            valEl.textContent = formatStatDisplay(finalNum, isPercent, isDecimal);
+          } else {
+            valEl.textContent = isPercent ? "0.0%" : (isDecimal ? "0.00" : "0");
+            animateCountUp(valEl, finalNum, isPercent, isDecimal);
+          }
+
+          tile.appendChild(valEl);
+          tile.appendChild(labelEl);
+          els.drawerStatsGrid.appendChild(tile);
+        });
+      }
+
+      function formatStatDisplay(num, isPercent, isDecimal) {
+        if (isNaN(num)) return "—";
+        if (isPercent) {
+          return `${num.toFixed(1)}%`;
+        }
+        if (isDecimal) {
+          return num.toFixed(2);
+        }
+        return Math.round(num).toLocaleString();
+      }
+
+      // Count-up animation for numeric detail tiles
+      function animateCountUp(element, target, isPercent, isDecimal) {
+        const duration = 550; // ms
+        const startTime = performance.now();
+        let animationFrameId = null;
+
+        function update(currentTime) {
+          const elapsed = currentTime - startTime;
+          const progress = Math.min(elapsed / duration, 1);
+          // Ease-out cubic
+          const easeOut = 1 - Math.pow(1 - progress, 3);
+          const currentVal = target * easeOut;
+
+          element.textContent = formatStatDisplay(currentVal, isPercent, isDecimal);
+
+          if (progress < 1) {
+            animationFrameId = requestAnimationFrame(update);
+            state.activeCountUpAnimations.push(animationFrameId);
+          } else {
+            element.textContent = formatStatDisplay(target, isPercent, isDecimal);
+          }
+        }
+
+        animationFrameId = requestAnimationFrame(update);
+        state.activeCountUpAnimations.push(animationFrameId);
+      }
+
+      function cancelCountUpAnimations() {
+        state.activeCountUpAnimations.forEach(id => cancelAnimationFrame(id));
+        state.activeCountUpAnimations = [];
+      }
+
+      // Render Closest Precomputed Matches
+      function renderDrawerSimilar(player) {
+        els.drawerSimilarList.innerHTML = "";
+        const similarList = Array.isArray(player.similar) ? player.similar : [];
+
+        if (similarList.length === 0) {
+          els.drawerSimilarList.innerHTML = `
+            <div class="similar-empty-text">
+              No precomputed statistical matches available for this profile.
+            </div>
+          `;
+          els.drawerSimilarToggleBtn.style.display = "none";
+          return;
+        }
+
+        const maxDisplay = state.showingAllSimilar ? Math.min(20, similarList.length) : Math.min(5, similarList.length);
+        const displayed = similarList.slice(0, maxDisplay);
+
+        displayed.forEach(sim => {
+          const itemBtn = document.createElement("button");
+          itemBtn.type = "button";
+          itemBtn.className = "similar-item-btn";
+          itemBtn.setAttribute("aria-label", `View similar profile for ${sim.player}, ${sim.club}`);
+
+          const pct = Math.max(0, Math.min(100, Math.round(sim.similarity * 100)));
+
+          itemBtn.innerHTML = `
+            <div class="similar-player-col">
+              <div class="similar-name">${escapeHtml(sim.player)}</div>
+              <div class="similar-club">${escapeHtml(sim.club || "Premier League")}</div>
+            </div>
+            <div class="similar-score-col">
+              <div class="similar-meter" aria-hidden="true">
+                <div class="similar-meter-fill" style="width: ${pct}%;"></div>
+              </div>
+              <span class="similar-score-badge">${pct}% match</span>
+            </div>
+          `;
+
+          itemBtn.addEventListener("click", () => {
+            // Find target player in master dataset
+            const target = state.players.find(p => p.name === sim.player && p.club === sim.club) ||
+                           state.players.find(p => p.name === sim.player);
+
+            if (target) {
+              openPlayerDetail(target, null);
+              els.drawerPanel.scrollTop = 0;
+            } else {
+              alert(`Profile data for ${sim.player} is not currently loaded in this dataset.`);
+            }
+          });
+
+          els.drawerSimilarList.appendChild(itemBtn);
+        });
+
+        // Toggle button: Show more / Show less
+        if (similarList.length > 5) {
+          els.drawerSimilarToggleBtn.style.display = "inline-block";
+          if (state.showingAllSimilar) {
+            els.drawerSimilarToggleBtn.textContent = "Show Top 5 Only";
+          } else {
+            const remaining = Math.min(20, similarList.length) - 5;
+            els.drawerSimilarToggleBtn.textContent = `Show More (${remaining} more)`;
+          }
+        } else {
+          els.drawerSimilarToggleBtn.style.display = "none";
+        }
+      }
+
+      // Escape HTML to prevent injection
+      function escapeHtml(str) {
+        if (!str) return "";
+        return String(str)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      // Event Listeners Setup
+      function bindEvents() {
+        // Position Tabs with brief crossfade
+        els.tabs.forEach(tab => {
+          tab.addEventListener("click", () => {
+            const pos = tab.dataset.pos;
+            if (state.activePosition === pos) return;
+
+            state.activePosition = pos;
+            els.tabs.forEach(t => {
+              const isActive = t === tab;
+              t.classList.toggle("active", isActive);
+              t.setAttribute("aria-selected", isActive ? "true" : "false");
+            });
+
+            const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+            if (prefersReducedMotion) {
+              applyFilters();
+            } else {
+              els.playerGrid.classList.add("is-transitioning");
+              setTimeout(() => {
+                applyFilters();
+                els.playerGrid.classList.remove("is-transitioning");
+              }, 150);
+            }
+          });
+        });
+
+        // Search Input
+        els.searchInput.addEventListener("input", e => {
+          state.searchQuery = e.target.value;
+          els.searchClearBtn.classList.toggle("visible", state.searchQuery.length > 0);
+          applyFilters();
+        });
+
+        // Search Clear
+        els.searchClearBtn.addEventListener("click", () => {
+          els.searchInput.value = "";
+          state.searchQuery = "";
+          els.searchClearBtn.classList.remove("visible");
+          els.searchInput.focus();
+          applyFilters();
+        });
+
+        // Club Select
+        els.clubSelect.addEventListener("change", e => {
+          state.selectedClub = e.target.value;
+          applyFilters();
+        });
+
+        // Minutes Slider
+        els.minutesSlider.addEventListener("input", e => {
+          updateMinutesDisplay(e.target.value);
+          applyFilters();
+        });
+
+        // Drawer Close Button
+        els.drawerCloseBtn.addEventListener("click", closePlayerDetail);
+
+        // Backdrop Click to Close
+        els.drawerBackdrop.addEventListener("click", e => {
+          if (e.target === els.drawerBackdrop) {
+            closePlayerDetail();
+          }
+        });
+
+        // Keyboard Escape listener
+        window.addEventListener("keydown", e => {
+          if (e.key === "Escape" && els.drawerBackdrop.classList.contains("open")) {
+            closePlayerDetail();
+          }
+        });
+
+        // Similar Toggle Button
+        els.drawerSimilarToggleBtn.addEventListener("click", () => {
+          state.showingAllSimilar = !state.showingAllSimilar;
+          if (state.selectedPlayer) {
+            renderDrawerSimilar(state.selectedPlayer);
+          }
+        });
+
+        // Retry Fetch
+        els.retryFetchBtn.addEventListener("click", loadData);
+      }
+
+      // Load Data from JSON
+      async function loadData() {
+        els.errorContainer.style.display = "none";
+        els.resultsCountText.textContent = "Loading player database...";
+
+        try {
+          const response = await fetch("data/players.json");
+          if (!response.ok) {
+            throw new Error(`HTTP Error ${response.status}: ${response.statusText}`);
+          }
+          const data = await response.json();
+
+          state.meta = data.meta || {};
+          state.players = Array.isArray(data.players) ? data.players : [];
+
+          // Metadata in footer
+          if (state.meta.generated_at) {
+            els.footerGeneratedDate.textContent = `Generated: ${formatHumanDate(state.meta.generated_at)}`;
+          }
+
+          if (state.meta.season) {
+            els.pipelineStatusText.textContent = `Season ${state.meta.season} • ${state.players.length} Players Indexed`;
+          }
+
+          // Initialize controls
+          initClubDropdown(state.players);
+          initMinutesSlider(state.players);
+
+          // Apply initial filters
+          applyFilters();
+
+        } catch (err) {
+          console.error("Failed to load player data:", err);
+          els.resultsCountText.textContent = "Database offline";
+          els.errorContainer.style.display = "block";
+          els.playerGrid.innerHTML = "";
+        }
+      }
+
+      // Initialize
+      bindEvents();
+      loadData();
+
+    })();
+  </script>
+</body>
+</html>
