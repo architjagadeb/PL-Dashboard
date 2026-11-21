@@ -1,0 +1,35 @@
+﻿nan_player,nan_nation,nan_pos,nan_age,nan_mp,playing_time_starts,playing_time_min,playing_time_90s,performance_gls,performance_ast,performance_g+a,performance_g-pk,performance_pk,performance_pkatt,performance_crdy,performance_crdr,per_90_minutes_gls,per_90_minutes_ast,per_90_minutes_g+a,per_90_minutes_g-pk,per_90_minutes_g+a-pk,per_90_minutes_matches
+Jordan Pickford,eng ENG,GK,31.0,38,38,3420.0,38.0,0.0,0.0,0.0,0.0,0.0,0.0,4.0,0.0,0.0,0.0,0.0,0.0,0.0,Matches
+James Garner,eng ENG,"MF,DF",24.0,38,38,3413.0,37.9,2.0,7.0,9.0,2.0,0.0,0.0,12.0,0.0,0.05,0.18,0.24,0.05,0.24,Matches
+James Tarkowski,eng ENG,DF,32.0,37,37,3330.0,37.0,2.0,3.0,5.0,2.0,0.0,0.0,8.0,0.0,0.05,0.08,0.14,0.05,0.14,Matches
+Jake O'Brien,ie IRL,DF,24.0,37,35,3120.0,34.7,1.0,1.0,2.0,1.0,0.0,0.0,6.0,1.0,0.03,0.03,0.06,0.03,0.06,Matches
+Vitaliy Mykolenko,ua UKR,DF,26.0,33,33,2958.0,32.9,0.0,1.0,1.0,0.0,0.0,0.0,6.0,0.0,0.0,0.03,0.03,0.0,0.03,Matches
+Iliman Ndiaye,sn SEN,MF,25.0,32,32,2778.0,30.9,6.0,3.0,9.0,4.0,2.0,2.0,2.0,0.0,0.19,0.1,0.29,0.13,0.23,Matches
+Kiernan Dewsbury-Hall,eng ENG,MF,26.0,31,30,2626.0,29.2,8.0,4.0,12.0,8.0,0.0,0.0,6.0,0.0,0.27,0.14,0.41,0.27,0.41,Matches
+Michael Keane,eng ENG,DF,32.0,33,29,2591.0,28.8,3.0,1.0,4.0,3.0,0.0,0.0,1.0,1.0,0.1,0.03,0.14,0.1,0.14,Matches
+Idrissa Gueye,sn SEN,MF,35.0,25,25,2093.0,23.3,2.0,3.0,5.0,2.0,0.0,0.0,1.0,1.0,0.09,0.13,0.22,0.09,0.22,Matches
+Thierno Barry,fr FRA,FW,22.0,38,21,1914.0,21.3,8.0,0.0,8.0,8.0,0.0,0.0,3.0,0.0,0.38,0.0,0.38,0.38,0.38,Matches
+Jack Grealish,eng ENG,MF,29.0,20,18,1627.0,18.1,2.0,6.0,8.0,2.0,0.0,0.0,5.0,1.0,0.11,0.33,0.44,0.11,0.44,Matches
+Beto,gw GNB,FW,27.0,37,17,1568.0,17.4,9.0,1.0,10.0,9.0,0.0,0.0,3.0,0.0,0.52,0.06,0.57,0.52,0.57,Matches
+Tim Iroegbunam,eng ENG,MF,22.0,29,17,1487.0,16.5,0.0,2.0,2.0,0.0,0.0,0.0,9.0,0.0,0.0,0.12,0.12,0.0,0.12,Matches
+Dwight McNeil,eng ENG,MF,25.0,22,14,1168.0,13.0,0.0,1.0,1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.08,0.08,0.0,0.08,Matches
+Jarrad Branthwaite,eng ENG,DF,23.0,10,7,680.0,7.6,1.0,0.0,1.0,1.0,0.0,0.0,1.0,0.0,0.13,0.0,0.13,0.13,0.13,Matches
+Carlos Alcaraz,ar ARG,MF,22.0,20,6,689.0,7.7,0.0,1.0,1.0,0.0,0.0,0.0,4.0,0.0,0.0,0.13,0.13,0.0,0.13,Matches
+Merlin Röhl,de GER,MF,23.0,16,6,682.0,7.6,1.0,0.0,1.0,1.0,0.0,0.0,0.0,0.0,0.13,0.0,0.13,0.13,0.13,Matches
+Harrison Armstrong,eng ENG,MF,18.0,13,6,529.0,5.9,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,Matches
+Tyler Dibling,eng ENG,MF,19.0,14,4,358.0,4.0,0.0,0.0,0.0,0.0,0.0,0.0,2.0,0.0,0.0,0.0,0.0,0.0,0.0,Matches
+Nathan Patterson,sct SCO,DF,23.0,7,3,241.0,2.7,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,Matches
+Tyrique George,eng ENG,MF,19.0,11,1,218.0,2.4,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,Matches
+Séamus Coleman,ie IRL,DF,36.0,5,1,21.0,0.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,Matches
+Adam Aznou,ma MAR,DF,19.0,0,0,,,,,,,,,,,,,,,,Matches
+Callum Bates,eng ENG,MF,19.0,0,0,,,,,,,,,,,,,,,,Matches
+Elijah Campbell,eng ENG,DF,20.0,0,0,,,,,,,,,,,,,,,,Matches
+Youssef Chermiti,pt POR,FW,21.0,0,0,,,,,,,,,,,,,,,,Matches
+Braiden Graham,nir NIR,FW,17.0,0,0,,,,,,,,,,,,,,,,Matches
+Tom King,wls WAL,GK,30.0,0,0,,,,,,,,,,,,,,,,Matches
+Tyler Onyango,eng ENG,MF,22.0,0,0,,,,,,,,,,,,,,,,Matches
+Mark Travers,ie IRL,GK,26.0,0,0,,,,,,,,,,,,,,,,Matches
+Harry Tyrer,eng ENG,GK,23.0,0,0,,,,,,,,,,,,,,,,Matches
+Reece Welch,eng ENG,DF,21.0,0,0,,,,,,,,,,,,,,,,Matches
+Squad Total,,,27.3,38,418,3420.0,38.0,45.0,34.0,79.0,43.0,2.0,2.0,74.0,4.0,1.18,0.89,2.08,1.13,2.03,
+Opponent Total,,,26.0,38,418,3420.0,38.0,49.0,42.0,91.0,46.0,3.0,4.0,61.0,0.0,1.29,1.11,2.39,1.21,2.32,

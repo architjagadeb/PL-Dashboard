@@ -1,0 +1,39 @@
+﻿nan_player,nan_nation,nan_pos,nan_age,nan_mp,playing_time_starts,playing_time_min,playing_time_90s,performance_gls,performance_ast,performance_g+a,performance_g-pk,performance_pk,performance_pkatt,performance_crdy,performance_crdr,per_90_minutes_gls,per_90_minutes_ast,per_90_minutes_g+a,per_90_minutes_g-pk,per_90_minutes_g+a-pk,per_90_minutes_matches
+Enzo Fernández,ar ARG,MF,24.0,36,35,3115.0,34.6,10.0,4.0,14.0,8.0,2.0,2.0,10.0,0.0,0.29,0.12,0.4,0.23,0.35,Matches
+Robert Sánchez,es ESP,GK,27.0,35,35,3039.0,33.8,0.0,1.0,1.0,0.0,0.0,0.0,3.0,1.0,0.0,0.03,0.03,0.0,0.03,Matches
+Moisés Caicedo,ec ECU,MF,23.0,33,32,2795.0,31.1,3.0,1.0,4.0,3.0,0.0,0.0,11.0,1.0,0.1,0.03,0.13,0.1,0.13,Matches
+Trevoh Chalobah,eng ENG,DF,26.0,34,31,2783.0,30.9,3.0,0.0,3.0,3.0,0.0,0.0,3.0,1.0,0.1,0.0,0.1,0.1,0.1,Matches
+Marc Cucurella,es ESP,DF,27.0,34,31,2707.0,30.1,1.0,4.0,5.0,1.0,0.0,0.0,8.0,1.0,0.03,0.13,0.17,0.03,0.17,Matches
+João Pedro,br BRA,"FW,MF",23.0,35,31,2661.0,29.6,15.0,5.0,20.0,15.0,0.0,0.0,5.0,0.0,0.51,0.17,0.68,0.51,0.68,Matches
+Pedro Neto,pt POR,"MF,FW",25.0,34,30,2631.0,29.2,5.0,6.0,11.0,5.0,0.0,0.0,4.0,1.0,0.17,0.21,0.38,0.17,0.38,Matches
+Malo Gusto,fr FRA,"DF,MF",22.0,34,26,2261.0,25.1,2.0,3.0,5.0,2.0,0.0,0.0,5.0,1.0,0.08,0.12,0.2,0.08,0.2,Matches
+Cole Palmer,eng ENG,MF,23.0,26,24,1955.0,21.7,10.0,1.0,11.0,5.0,5.0,6.0,5.0,0.0,0.46,0.05,0.51,0.23,0.28,Matches
+Reece James,eng ENG,"DF,MF",25.0,29,20,1963.0,21.8,2.0,4.0,6.0,2.0,0.0,0.0,4.0,0.0,0.09,0.18,0.28,0.09,0.28,Matches
+Wesley Fofana,fr FRA,DF,24.0,25,20,1722.0,19.1,0.0,1.0,1.0,0.0,0.0,0.0,9.0,2.0,0.0,0.05,0.05,0.0,0.05,Matches
+Alejandro Garnacho,ar ARG,MF,21.0,24,14,1268.0,14.1,1.0,4.0,5.0,1.0,0.0,0.0,2.0,0.0,0.07,0.28,0.35,0.07,0.35,Matches
+Andrey Santos,br BRA,MF,21.0,27,13,1260.0,14.0,1.0,0.0,1.0,1.0,0.0,0.0,4.0,0.0,0.07,0.0,0.07,0.07,0.07,Matches
+Jorrel Hato,nl NED,DF,19.0,22,12,1148.0,12.8,0.0,0.0,0.0,0.0,0.0,0.0,7.0,0.0,0.0,0.0,0.0,0.0,0.0,Matches
+Liam Delap,eng ENG,FW,22.0,28,12,1107.0,12.3,1.0,0.0,1.0,1.0,0.0,0.0,4.0,0.0,0.08,0.0,0.08,0.08,0.08,Matches
+Estêvão Willian,br BRA,MF,18.0,22,12,848.0,9.4,2.0,2.0,4.0,2.0,0.0,0.0,4.0,0.0,0.21,0.21,0.42,0.21,0.42,Matches
+Tosin Adarabioyo,eng ENG,DF,27.0,16,8,795.0,8.8,0.0,0.0,0.0,0.0,0.0,0.0,2.0,0.0,0.0,0.0,0.0,0.0,0.0,Matches
+Joshua Acheampong,eng ENG,DF,19.0,17,8,666.0,7.4,1.0,0.0,1.0,1.0,0.0,0.0,1.0,0.0,0.14,0.0,0.14,0.14,0.14,Matches
+Benoît Badiashile,fr FRA,DF,24.0,8,6,471.0,5.2,0.0,0.0,0.0,0.0,0.0,0.0,2.0,0.0,0.0,0.0,0.0,0.0,0.0,Matches
+Jamie Gittens,eng ENG,MF,20.0,16,5,495.0,5.5,0.0,2.0,2.0,0.0,0.0,0.0,0.0,0.0,0.0,0.36,0.36,0.0,0.36,Matches
+Roméo Lavia,be BEL,MF,21.0,12,4,382.0,4.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,Matches
+Filip Jørgensen,dk DEN,GK,23.0,5,3,379.0,4.2,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,Matches
+Levi Colwill,eng ENG,DF,22.0,3,2,225.0,2.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,Matches
+Marc Guiu,es ESP,FW,19.0,8,1,257.0,2.9,0.0,1.0,1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.35,0.35,0.0,0.35,Matches
+Mamadou Sarr,sn SEN,DF,19.0,3,1,102.0,1.1,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,Matches
+Facundo Buonanotte,ar ARG,MF,20.0,1,1,45.0,0.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,Matches
+Jesse Derry,eng ENG,MF,18.0,1,1,44.0,0.5,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,Matches
+Tyrique George,eng ENG,FW,19.0,4,0,145.0,1.6,0.0,0.0,0.0,0.0,0.0,0.0,2.0,0.0,0.0,0.0,0.0,0.0,0.0,Matches
+Dario Essugo,pt POR,MF,20.0,3,0,30.0,0.3,0.0,0.0,0.0,0.0,0.0,0.0,2.0,0.0,0.0,0.0,0.0,0.0,0.0,Matches
+Shumaira Mheuka,eng ENG,FW,17.0,1,0,2.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,Matches
+Mathis Eboue,eng ENG,FW,16.0,0,0,,,,,,,,,,,,,,,,Matches
+Landon Emenalo,eng ENG,DF,17.0,0,0,,,,,,,,,,,,,,,,Matches
+Ryan Kavuma McQueen,eng ENG,FW,16.0,0,0,,,,,,,,,,,,,,,,Matches
+Max Merrick,eng ENG,GK,19.0,0,0,,,,,,,,,,,,,,,,Matches
+Teddy Sharman,eng ENG,GK,22.0,0,0,,,,,,,,,,,,,,,,Matches
+Gaga Slonina,us USA,GK,21.0,0,0,,,,,,,,,,,,,,,,Matches
+Squad Total,,,24.1,38,418,3420.0,38.0,57.0,39.0,96.0,50.0,7.0,8.0,98.0,8.0,1.5,1.03,2.53,1.32,2.34,
+Opponent Total,,,26.3,38,418,3420.0,38.0,51.0,39.0,90.0,49.0,2.0,2.0,85.0,3.0,1.34,1.03,2.37,1.29,2.32,
